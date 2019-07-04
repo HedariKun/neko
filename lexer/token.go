@@ -13,6 +13,7 @@ func NewToken(t, v string) Token {
 }
 
 const (
+	EOF              = "EOF"
 	BANG             = "bang"
 	POINT            = "point"
 	SEMI             = ";"

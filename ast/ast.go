@@ -79,6 +79,17 @@ func (ne NumberExpression) TokenLiteral() string {
 
 func (ne NumberExpression) expressionNode() {}
 
+type StringExpression struct {
+	Token lexer.Token
+	Value string
+}
+
+func (se StringExpression) TokenLiteral() string {
+	return se.Token.Type
+}
+
+func (se StringExpression) expressionNode() {}
+
 type OperationExpression struct {
 	Operator lexer.Token
 	Left     Expression
@@ -126,3 +137,15 @@ func (fe FunExpression) TokenLiteral() string {
 }
 
 func (fe FunExpression) expressionNode() {}
+
+type CallExpression struct {
+	Token lexer.Token
+	Ident Identifier
+	Args  []Expression
+}
+
+func (ce CallExpression) TokenLiteral() string {
+	return ce.Token.Value
+}
+
+func (ce CallExpression) expressionNode() {}

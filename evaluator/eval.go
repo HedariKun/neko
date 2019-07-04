@@ -26,13 +26,13 @@ func (e *Evaluator) StartEvaluate(context string) {
 	lex.Lexerize()
 	p := parser.New(lex)
 	prog := p.Parse()
-
+	// fmt.Printf("%+v", prog.Statements)
 	for _, statement := range prog.Statements {
 		switch val := statement.(type) {
 		case ast.ExpressionStatment:
-			evaluateExpression(val.Value)
+			evaluateExpression(val.Value, &e.Global)
 		case ast.LetStatment:
-			value := evaluateExpression(val.Value)
+			value := evaluateExpression(val.Value, &e.Global)
 			if value != nil {
 				e.Global.SetVariable(val.Name.Value, value)
 			}
@@ -40,22 +40,33 @@ func (e *Evaluator) StartEvaluate(context string) {
 	}
 }
 
-func evaluateExpression(val ast.Expression) Object {
+func evaluateExpression(val ast.Expression, scope ScopeInterface) Object {
 	switch val := val.(type) {
 	case ast.OperationExpression:
-		return evaluateOperationExpression(val)
+		return evaluateOperationExpression(val, scope)
 	case ast.NumberExpression:
 		return evaluateNumber(val)
-
+	case ast.StringExpression:
+		return evaluateString(val)
+	case ast.CallExpression:
+		return evaluateCallExpression(val, scope)
 	default:
 		return nil
 	}
 }
 
+func evaluateCallExpression(val ast.CallExpression, scope ScopeInterface) Object {
+	var args []Object
+	for _, arg := range val.Args {
+		args = append(args, evaluateExpression(arg, scope))
+	}
+	return scope.ExecuteFun(val.Ident.Value, args)
+}
+
 // Will change when i add operator overloading
-func evaluateOperationExpression(val ast.OperationExpression) Object {
-	left, _ := evaluateExpression(val.Left).(NumberObject)
-	right, _ := evaluateExpression(val.Right).(NumberObject)
+func evaluateOperationExpression(val ast.OperationExpression, scope ScopeInterface) Object {
+	left, _ := evaluateExpression(val.Left, scope).(NumberObject)
+	right, _ := evaluateExpression(val.Right, scope).(NumberObject)
 
 	switch val.Operator.Type {
 	case lexer.PLUS:
@@ -74,4 +85,8 @@ func evaluateOperationExpression(val ast.OperationExpression) Object {
 
 func evaluateNumber(val ast.NumberExpression) Object {
 	return NewNumber(val.Value)
+}
+
+func evaluateString(val ast.StringExpression) Object {
+	return NewString(val.Value)
 }

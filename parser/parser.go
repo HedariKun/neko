@@ -29,11 +29,11 @@ func parseStatement(l *lexer.Lexer) ast.Statement {
 	case lexer.LET:
 		return parseLetStatement(l)
 	default:
-		return parseExpressionStatment(l)
+		return parseExpressionStatement(l)
 	}
 }
 
-func parseExpressionStatment(l *lexer.Lexer) ast.Statement {
+func parseExpressionStatement(l *lexer.Lexer) ast.Statement {
 	return ast.ExpressionStatment{
 		Value: parseExpression(l),
 	}
@@ -64,6 +64,69 @@ func parseLetStatement(l *lexer.Lexer) ast.Statement {
 	}
 }
 
+func parseExpression(l *lexer.Lexer) ast.Expression {
+	var leftExpression ast.Expression
+
+	switch l.Peek().Type {
+	case lexer.NUMBER:
+		leftExpression = parseNumberExpression(l)
+	case lexer.STRING:
+		leftExpression = parseStringExpression(l)
+	case lexer.IF:
+		leftExpression = parseIfExpression(l)
+	case lexer.OCB:
+		leftExpression = parseBlockExpression(l)
+	case lexer.FUN:
+		leftExpression = parseFunExpression(l)
+	case lexer.IDENT:
+		leftExpression = parseIdentifier(l)
+	default:
+		// undefined: error handle
+	}
+
+	return leftExpression
+}
+
+func parseIdentifier(l *lexer.Lexer) ast.Expression {
+	t := l.Next()
+	ident := ast.Identifier{Token: t, Value: t.Value}
+	switch l.Peek().Type {
+	case lexer.OP:
+		return parseFunCall(l, ident)
+	}
+	return ident
+}
+
+func parseFunCall(l *lexer.Lexer, ident ast.Identifier) ast.Expression {
+	l.Next()
+	var args []ast.Expression
+	if l.Peek().Type != lexer.CP {
+		args = parseArgs(l)
+	}
+	l.Next()
+	return ast.CallExpression{
+		Token: ident.Token,
+		Ident: ident,
+		Args:  args,
+	}
+}
+
+func parseArgs(l *lexer.Lexer) []ast.Expression {
+	var args []ast.Expression
+	for !l.EOF() && l.Peek().Type != lexer.CP {
+		expression := parseExpression(l)
+		if l.EOF() || l.Peek().Type != lexer.Comma {
+			// error
+		}
+		l.Next()
+		args = append(args, expression)
+	}
+	if l.EOF() {
+		// error
+	}
+	return args
+}
+
 func parseBlockExpression(l *lexer.Lexer) ast.Expression {
 	l.Next()
 	blockExpression := ast.BlockExpression{}
@@ -81,25 +144,6 @@ func parseBlockExpression(l *lexer.Lexer) ast.Expression {
 	return blockExpression
 }
 
-func parseExpression(l *lexer.Lexer) ast.Expression {
-	var leftExpression ast.Expression
-
-	switch l.Peek().Type {
-	case lexer.NUMBER:
-		leftExpression = parseNumberExpression(l)
-	case lexer.IF:
-		leftExpression = parseIfExpression(l)
-	case lexer.OCB:
-		leftExpression = parseBlockExpression(l)
-	case lexer.FUN:
-		leftExpression = parseFunExpression(l)
-	default:
-		// undefined: error handle
-	}
-
-	return leftExpression
-}
-
 func parseNumberExpression(l *lexer.Lexer) ast.Expression {
 	token := l.Next()
 
@@ -113,10 +157,19 @@ func parseNumberExpression(l *lexer.Lexer) ast.Expression {
 		Value: value,
 	}
 
+	// ToDo: change this when adding operator overloading
 	if !l.EOF() && isOperation(l.Peek()) {
 		numberExpression = parseOperationExpression(l, numberExpression)
 	}
 	return numberExpression
+}
+
+func parseStringExpression(l *lexer.Lexer) ast.Expression {
+	token := l.Next()
+	return ast.StringExpression{
+		Token: token,
+		Value: token.Value,
+	}
 }
 
 func parseOperationExpression(l *lexer.Lexer, leftExpression ast.Expression) ast.Expression {

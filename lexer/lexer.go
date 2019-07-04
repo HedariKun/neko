@@ -80,6 +80,7 @@ func (t *Lexer) Lexerize() {
 			}
 		}
 	}
+	t.AddToken(Token{Type: EOF, Value: ""})
 }
 
 func (l *Lexer) AddToken(token Token) {
@@ -144,7 +145,7 @@ func (l *Lexer) PeekFurther() Token {
 }
 
 func (l *Lexer) EOF() bool {
-	return l.Position >= len(l.token)
+	return l.Position >= len(l.token) || l.Peek().Type == EOF
 }
 
 func isNumber(char rune) bool {

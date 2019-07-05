@@ -121,10 +121,12 @@ func parseArgs(l *lexer.Lexer) []ast.Expression {
 	var args []ast.Expression
 	for !l.EOF() && l.Peek().Type != lexer.CP {
 		expression := parseExpression(l)
-		if l.EOF() || l.Peek().Type != lexer.Comma {
+		if l.EOF()  || l.Peek().Type != lexer.COMMA {
 			// error
 		}
-		l.Next()
+		if l.Peek().Type == lexer.COMMA {
+			l.Next()
+		}
 		args = append(args, expression)
 	}
 	if l.EOF() {
@@ -141,8 +143,7 @@ func parseBlockExpression(l *lexer.Lexer) ast.Expression {
 		statement := parseStatement(l)
 		blockExpression.Statements = append(blockExpression.Statements, statement)
 	}
-
-	if !l.EOF() {
+	if l.EOF() {
 		// error
 	}
 	l.Next()
@@ -223,7 +224,6 @@ func parseIfExpression(l *lexer.Lexer) ast.Expression {
 	}
 
 	ifExpression.Condition = parseExpression(l)
-
 	if l.EOF() || l.Peek().Type != lexer.OCB {
 		// error
 	}
@@ -286,7 +286,7 @@ func parseParameters(l *lexer.Lexer) []ast.Identifier {
 			if l.Peek().Type == lexer.IDENT {
 				// error
 			}
-		} else if l.Peek().Type == lexer.Comma {
+		} else if l.Peek().Type == lexer.COMMA {
 			l.Next()
 		} else {
 			// error

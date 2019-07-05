@@ -43,5 +43,5 @@ const (
 	CCB              = "}"
 	OP               = "("
 	CP               = ")"
-	Comma            = ","
+	COMMA            = ","
 )

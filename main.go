@@ -15,7 +15,7 @@ func main() {
 		}
 		return nil
 	})
-	eva.StartEvaluate("true")
-	// val, _ := eva.Global.GetVariable("x").(evaluator.NumberObject)
-	// fmt.Print(val.Value)
+	eva.StartEvaluate("5 || 10")
+	val, _ := eva.Global.GetVariable("x").(builtin.NumberObject)
+	fmt.Print(val.Value)
 }

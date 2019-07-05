@@ -26,7 +26,7 @@ func (t *Lexer) Lexerize() {
 		case '.':
 			t.AddToken(NewToken(POINT, string(t.inputStream.Next())))
 		case ',':
-			t.AddToken(NewToken(Comma, string(t.inputStream.Next())))
+			t.AddToken(NewToken(COMMA, string(t.inputStream.Next())))
 		case '{':
 			t.AddToken(NewToken(OCB, string(t.inputStream.Next())))
 		case '}':

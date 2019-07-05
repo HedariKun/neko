@@ -27,7 +27,8 @@ func NewString(value string) StringObject {
 		return NewString(so.Value)
 	}
 	so.Methods["add"] = func(args []Object) Object {
-		right, _ := args[0].(StringObject)
+		arg := args[0]
+		right, _ := arg.CallMethod("toString", nil).(StringObject)
 		return NewString(so.Value + right.Value)
 	}
 	return so

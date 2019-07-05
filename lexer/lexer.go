@@ -124,6 +124,10 @@ func lexerizeKeyword(tokenizer *Lexer) Token {
 		t = IF
 	case ELSE:
 		t = ELSE
+	case FALSE:
+		t = BOOL
+	case TRUE:
+		t = BOOL
 	}
 	return NewToken(t, val)
 }

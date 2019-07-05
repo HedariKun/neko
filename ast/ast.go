@@ -90,6 +90,17 @@ func (se StringExpression) TokenLiteral() string {
 
 func (se StringExpression) expressionNode() {}
 
+type BoolExpression struct {
+	Token lexer.Token
+	Value bool
+}
+
+func (be BoolExpression) TokenLiteral() string {
+	return be.Token.Type
+}
+
+func (be BoolExpression) expressionNode() {}
+
 type OperationExpression struct {
 	Operator lexer.Token
 	Left     Expression

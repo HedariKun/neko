@@ -72,6 +72,8 @@ func parseExpression(l *lexer.Lexer) ast.Expression {
 		leftExpression = parseNumberExpression(l)
 	case lexer.STRING:
 		leftExpression = parseStringExpression(l)
+	case lexer.BOOL:
+		leftExpression = parseBoolExpression(l)
 	case lexer.IF:
 		leftExpression = parseIfExpression(l)
 	case lexer.OCB:
@@ -82,6 +84,10 @@ func parseExpression(l *lexer.Lexer) ast.Expression {
 		leftExpression = parseIdentifier(l)
 	default:
 		// undefined: error handle
+	}
+
+	if !l.EOF() && isOperation(l.Peek()) {
+		leftExpression = parseOperationExpression(l, leftExpression)
 	}
 
 	return leftExpression
@@ -157,10 +163,6 @@ func parseNumberExpression(l *lexer.Lexer) ast.Expression {
 		Value: value,
 	}
 
-	// ToDo: change this when adding operator overloading
-	if !l.EOF() && isOperation(l.Peek()) {
-		numberExpression = parseOperationExpression(l, numberExpression)
-	}
 	return numberExpression
 }
 
@@ -169,6 +171,18 @@ func parseStringExpression(l *lexer.Lexer) ast.Expression {
 	return ast.StringExpression{
 		Token: token,
 		Value: token.Value,
+	}
+}
+
+func parseBoolExpression(l *lexer.Lexer) ast.Expression {
+	token := l.Next()
+	value := false
+	if token.Value == "true" {
+		value = true
+	}
+	return ast.BoolExpression {
+		Token: token,
+		Value: value,
 	}
 }
 

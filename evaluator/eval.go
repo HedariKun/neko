@@ -1,13 +1,12 @@
 package neko
 
 import (
-	"fmt"
-
 	ast "github.com/hedarikun/neko/ast"
 	builtin "github.com/hedarikun/neko/builtin"
 	inputStream "github.com/hedarikun/neko/inputStream"
 	lexer "github.com/hedarikun/neko/lexer"
 	parser "github.com/hedarikun/neko/parser"
+	"fmt"
 )
 
 type Evaluator struct {
@@ -29,10 +28,10 @@ func (e *Evaluator) StartEvaluate(context string) {
 	lex.Lexerize()
 	p := parser.New(lex)
 	prog := p.Parse()
-	fmt.Printf("%+v", prog.Statements)
-	// for _, statement := range prog.Statements {
-	// 	evaluateStatement(statement, &e.Global)
-	// }
+	 fmt.Printf("%+v", prog.Statements)
+	//for _, statement := range prog.Statements {
+//		evaluateStatement(statement, &e.Global)
+//	}
 
 }
 
@@ -117,6 +116,20 @@ func evaluateOperationExpression(val ast.OperationExpression, scope ScopeInterfa
 		return left.CallMethod("multiply", []builtin.Object{right})
 	case lexer.DIVIDE:
 		return left.CallMethod("divide", []builtin.Object{right})
+	case lexer.EQUAL:
+		return left.CallMethod("equal", []builtin.Object{right})
+	case lexer.GREATER:
+		return left.CallMethod("greater", []builtin.Object{right})
+	case lexer.GREATER_OR_EQUAL:
+		return left.CallMethod("greaterOrEqual", []builtin.Object{right})
+	case lexer.LOWER:
+		return left.CallMethod("lower", []builtin.Object{right})
+	case lexer.LOWER_OR_EQUAL:
+		return left.CallMethod("lowerOrEqual", []builtin.Object{right})
+	case lexer.AND:
+		return left.CallMethod("and", []builtin.Object{right})
+	case lexer.OR:
+		return left.CallMethod("or", []builtin.Object{right})
 	default:
 		return nil
 	}

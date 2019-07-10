@@ -76,5 +76,45 @@ func NewNumber(value float64) NumberObject {
 		return NewNumber(no.Value / right.Value)
 	}
 
+	no.Methods["equal"] = func(args []Object) Object {
+		right, ok := args[0].(NumberObject)
+		if !ok {
+			// error
+		}
+		return NewBool(no.Value == right.Value)
+	}
+
+	no.Methods["greater"] = func(args []Object) Object {
+		right, ok := args[0].(NumberObject)
+		if !ok {
+			// error
+		}
+		return NewBool(no.Value > right.Value)
+	}
+
+	no.Methods["greaterOrEqual"] = func(args []Object) Object {
+		right, ok := args[0].(NumberObject)
+		if !ok {
+			// error
+		}
+		return NewBool(no.Value >= right.Value)
+	}
+
+	no.Methods["lower"] = func(args []Object) Object {
+		right, ok := args[0].(NumberObject)
+		if !ok {
+			// error
+		}
+		return NewBool(no.Value < right.Value)
+	}
+
+	no.Methods["lowerOrEqual"] = func(args []Object) Object {
+		right, ok := args[0].(NumberObject)
+		if !ok {
+			// error
+		}
+		return NewBool(no.Value <= right.Value)
+	}
+
 	return no
 }

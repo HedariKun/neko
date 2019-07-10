@@ -27,6 +27,20 @@ func (t *Lexer) Lexerize() {
 			t.AddToken(NewToken(POINT, string(t.inputStream.Next())))
 		case ',':
 			t.AddToken(NewToken(COMMA, string(t.inputStream.Next())))
+		case '|':
+			char := t.inputStream.Next()
+			if t.inputStream.Peek() == '|' {
+				t.AddToken(NewToken(OR, string(string(char) + string(t.inputStream.Next()))))
+			} else {
+				// error
+			}
+		case '&':
+			char := t.inputStream.Next()
+			if t.inputStream.Peek() == '&' {
+				t.AddToken(NewToken(AND, string(string(char) + string(t.inputStream.Next()))))
+			} else {
+				// error
+			}
 		case '{':
 			t.AddToken(NewToken(OCB, string(t.inputStream.Next())))
 		case '}':

@@ -121,7 +121,7 @@ func parseArgs(l *lexer.Lexer) []ast.Expression {
 	var args []ast.Expression
 	for !l.EOF() && l.Peek().Type != lexer.CP {
 		expression := parseExpression(l)
-		if l.EOF()  || l.Peek().Type != lexer.COMMA {
+		if l.EOF() || l.Peek().Type != lexer.COMMA {
 			// error
 		}
 		if l.Peek().Type == lexer.COMMA {
@@ -181,7 +181,7 @@ func parseBoolExpression(l *lexer.Lexer) ast.Expression {
 	if token.Value == "true" {
 		value = true
 	}
-	return ast.BoolExpression {
+	return ast.BoolExpression{
 		Token: token,
 		Value: value,
 	}
@@ -195,15 +195,50 @@ func parseOperationExpression(l *lexer.Lexer, leftExpression ast.Expression) ast
 			rightSide = parseOperationExpression(l, rightSide)
 		} else {
 			curOp := ast.OperationExpression{Operator: operation, Left: leftExpression, Right: rightSide}
-			nextOp := parseOperationExpression(l, curOp)
-			return nextOp
+			return parseOperationExpression(l, curOp)
+		}
+	}
+	var curOp ast.Expression
+	curOp = ast.OperationExpression{Operator: operation, Left: leftExpression, Right: rightSide}
+	if !l.EOF() && isBooleanOperation(l.Peek()) {
+		curOp = parseBooleanOperationExpression(l, curOp)
+	}
+	return curOp
+}
+
+func parseBooleanOperationExpression(l *lexer.Lexer, left ast.Expression) ast.Expression {
+	operation := l.Next()
+
+	if l.EOF() {
+		// error
+	}
+
+	right := parseExpression(l)
+
+	if !l.EOF() && isBooleanOperation(l.Peek()) && operation.Type == lexer.EQUAL || operation.Type == lexer.GREATER || operation.Type == lexer.LOWER || operation.Type == lexer.GREATER_OR_EQUAL || operation.Type == lexer.LOWER_OR_EQUAL {
+		if !l.EOF() && l.Peek().Type == lexer.AND {
+			right = parseBooleanOperationExpression(l, right)
+		} else {
+			curOp := ast.OperationExpression{Left: left, Right: right, Operator: operation}
+			return parseBooleanOperationExpression(l, curOp)
+		}
+	}
+
+	if !l.EOF() && operation.Type == lexer.AND {
+		if !l.EOF() && l.Peek().Type == lexer.OR {
+			right = parseBooleanOperationExpression(l, right)
+		} else {
+			curOp := ast.OperationExpression{Left: left, Right: right, Operator: operation}
+			return parseBooleanOperationExpression(l, curOp)
 		}
 	}
 	return ast.OperationExpression{
+		Left:     left,
+		Right:    right,
 		Operator: operation,
-		Left:     leftExpression,
-		Right:    rightSide,
 	}
+
+	return nil
 }
 
 func parsePrefixExpression(l *lexer.Lexer) ast.Expression {
@@ -305,6 +340,10 @@ func isPrefix(t lexer.Token) bool {
 
 func isOperation(t lexer.Token) bool {
 	return t.Type == lexer.PLUS || t.Type == lexer.MULTI || t.Type == lexer.MINUS || t.Type == lexer.DIVIDE
+}
+
+func isBooleanOperation(t lexer.Token) bool {
+	return t.Type == lexer.GREATER || t.Type == lexer.GREATER_OR_EQUAL || t.Type == lexer.LOWER || t.Type == lexer.LOWER_OR_EQUAL || t.Type == lexer.EQUAL || t.Type == lexer.AND || t.Type == lexer.OR
 }
 
 func New(l *lexer.Lexer) *Parser {

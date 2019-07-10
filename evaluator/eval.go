@@ -6,7 +6,6 @@ import (
 	inputStream "github.com/hedarikun/neko/inputStream"
 	lexer "github.com/hedarikun/neko/lexer"
 	parser "github.com/hedarikun/neko/parser"
-	"fmt"
 )
 
 type Evaluator struct {
@@ -28,10 +27,10 @@ func (e *Evaluator) StartEvaluate(context string) {
 	lex.Lexerize()
 	p := parser.New(lex)
 	prog := p.Parse()
-	 fmt.Printf("%+v", prog.Statements)
-	//for _, statement := range prog.Statements {
-//		evaluateStatement(statement, &e.Global)
-//	}
+	//  fmt.Printf("%+v", prog.Statements)
+	for _, statement := range prog.Statements {
+		evaluateStatement(statement, &e.Global)
+	}
 
 }
 
@@ -110,9 +109,9 @@ func evaluateOperationExpression(val ast.OperationExpression, scope ScopeInterfa
 	switch val.Operator.Type {
 	case lexer.PLUS:
 		return left.CallMethod("add", []builtin.Object{right})
-	case lexer.MULTI:
-		return left.CallMethod("subtract", []builtin.Object{right})
 	case lexer.MINUS:
+		return left.CallMethod("subtract", []builtin.Object{right})
+	case lexer.MULTI:
 		return left.CallMethod("multiply", []builtin.Object{right})
 	case lexer.DIVIDE:
 		return left.CallMethod("divide", []builtin.Object{right})

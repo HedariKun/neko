@@ -15,7 +15,13 @@ func main() {
 		}
 		return nil
 	})
-	eva.StartEvaluate("print(1+1)")
+	eva.StartEvaluate(`
+		if 3 == 4 {
+			print("hello world")
+		} else {
+			print("no one is here")
+		}
+	`)
 	// val, _ := eva.Global.GetVariable("x").(builtin.NumberObject)
 	// fmt.Print(val.Value)
 }

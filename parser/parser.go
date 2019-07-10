@@ -11,6 +11,8 @@ type Parser struct {
 	l *lexer.Lexer
 }
 
+var operLevels map[string]int
+
 func (p *Parser) Parse() *ast.Program {
 	program := ast.Program{}
 
@@ -35,7 +37,7 @@ func parseStatement(l *lexer.Lexer) ast.Statement {
 
 func parseExpressionStatement(l *lexer.Lexer) ast.Statement {
 	return ast.ExpressionStatment{
-		Value: parseExpression(l),
+		Value: parseExpression(l, 0),
 	}
 }
 
@@ -52,7 +54,7 @@ func parseLetStatement(l *lexer.Lexer) ast.Statement {
 	}
 	l.Next()
 
-	val := parseExpression(l)
+	val := parseExpression(l, 0)
 
 	return ast.LetStatment{
 		Token: literal,
@@ -64,7 +66,7 @@ func parseLetStatement(l *lexer.Lexer) ast.Statement {
 	}
 }
 
-func parseExpression(l *lexer.Lexer) ast.Expression {
+func parseExpression(l *lexer.Lexer, curOperLevel int) ast.Expression {
 	var leftExpression ast.Expression
 
 	switch l.Peek().Type {
@@ -86,7 +88,7 @@ func parseExpression(l *lexer.Lexer) ast.Expression {
 		// undefined: error handle
 	}
 
-	if !l.EOF() && isOperation(l.Peek()) {
+	for !l.EOF() && isOperation(l.Peek()) && (operLevels[l.Peek().Type] < curOperLevel || curOperLevel == 0) {
 		leftExpression = parseOperationExpression(l, leftExpression)
 	}
 
@@ -120,7 +122,7 @@ func parseFunCall(l *lexer.Lexer, ident ast.Identifier) ast.Expression {
 func parseArgs(l *lexer.Lexer) []ast.Expression {
 	var args []ast.Expression
 	for !l.EOF() && l.Peek().Type != lexer.CP {
-		expression := parseExpression(l)
+		expression := parseExpression(l, 0)
 		if l.EOF() || l.Peek().Type != lexer.COMMA {
 			// error
 		}
@@ -189,61 +191,21 @@ func parseBoolExpression(l *lexer.Lexer) ast.Expression {
 
 func parseOperationExpression(l *lexer.Lexer, leftExpression ast.Expression) ast.Expression {
 	operation := l.Next()
-	rightSide := parseExpression(l)
-	if !l.EOF() && isOperation(l.Peek()) && (operation.Type == lexer.PLUS || operation.Type == lexer.MINUS) {
-		if l.Peek().Type == lexer.MULTI || l.Peek().Type == lexer.MULTI {
+	rightSide := parseExpression(l, operLevels[operation.Type])
+
+	if !l.EOF() && isOperation(l.Peek()) {
+		if operLevels[operation.Type] > operLevels[l.Peek().Type] {
 			rightSide = parseOperationExpression(l, rightSide)
-		} else {
-			curOp := ast.OperationExpression{Operator: operation, Left: leftExpression, Right: rightSide}
-			return parseOperationExpression(l, curOp)
 		}
 	}
 	var curOp ast.Expression
 	curOp = ast.OperationExpression{Operator: operation, Left: leftExpression, Right: rightSide}
-	if !l.EOF() && isBooleanOperation(l.Peek()) {
-		curOp = parseBooleanOperationExpression(l, curOp)
-	}
 	return curOp
-}
-
-func parseBooleanOperationExpression(l *lexer.Lexer, left ast.Expression) ast.Expression {
-	operation := l.Next()
-
-	if l.EOF() {
-		// error
-	}
-
-	right := parseExpression(l)
-
-	if !l.EOF() && isBooleanOperation(l.Peek()) && operation.Type == lexer.EQUAL || operation.Type == lexer.GREATER || operation.Type == lexer.LOWER || operation.Type == lexer.GREATER_OR_EQUAL || operation.Type == lexer.LOWER_OR_EQUAL {
-		if !l.EOF() && l.Peek().Type == lexer.AND {
-			right = parseBooleanOperationExpression(l, right)
-		} else {
-			curOp := ast.OperationExpression{Left: left, Right: right, Operator: operation}
-			return parseBooleanOperationExpression(l, curOp)
-		}
-	}
-
-	if !l.EOF() && operation.Type == lexer.AND {
-		if !l.EOF() && l.Peek().Type == lexer.OR {
-			right = parseBooleanOperationExpression(l, right)
-		} else {
-			curOp := ast.OperationExpression{Left: left, Right: right, Operator: operation}
-			return parseBooleanOperationExpression(l, curOp)
-		}
-	}
-	return ast.OperationExpression{
-		Left:     left,
-		Right:    right,
-		Operator: operation,
-	}
-
-	return nil
 }
 
 func parsePrefixExpression(l *lexer.Lexer) ast.Expression {
 	prefix := l.Next()
-	val := parseExpression(l)
+	val := parseExpression(l, 0)
 
 	return ast.PrefixExpression{
 		Prefix: prefix,
@@ -258,19 +220,19 @@ func parseIfExpression(l *lexer.Lexer) ast.Expression {
 		// error
 	}
 
-	ifExpression.Condition = parseExpression(l)
+	ifExpression.Condition = parseExpression(l, 0)
 	if l.EOF() || l.Peek().Type != lexer.OCB {
 		// error
 	}
 
-	ifExpression.IfBlock = parseExpression(l)
+	ifExpression.IfBlock = parseExpression(l, 0)
 
 	if !l.EOF() && l.Peek().Type == lexer.ELSE {
 		l.Next()
 		if l.EOF() || l.Peek().Type != lexer.OCB {
 			// error
 		}
-		ifExpression.ElseBlock = parseExpression(l)
+		ifExpression.ElseBlock = parseExpression(l, 0)
 	}
 
 	return ifExpression
@@ -339,14 +301,23 @@ func isPrefix(t lexer.Token) bool {
 }
 
 func isOperation(t lexer.Token) bool {
-	return t.Type == lexer.PLUS || t.Type == lexer.MULTI || t.Type == lexer.MINUS || t.Type == lexer.DIVIDE
-}
-
-func isBooleanOperation(t lexer.Token) bool {
-	return t.Type == lexer.GREATER || t.Type == lexer.GREATER_OR_EQUAL || t.Type == lexer.LOWER || t.Type == lexer.LOWER_OR_EQUAL || t.Type == lexer.EQUAL || t.Type == lexer.AND || t.Type == lexer.OR
+	return t.Type == lexer.PLUS || t.Type == lexer.MULTI || t.Type == lexer.MINUS || t.Type == lexer.DIVIDE || t.Type == lexer.GREATER || t.Type == lexer.GREATER_OR_EQUAL || t.Type == lexer.LOWER || t.Type == lexer.LOWER_OR_EQUAL || t.Type == lexer.EQUAL || t.Type == lexer.AND || t.Type == lexer.OR
 }
 
 func New(l *lexer.Lexer) *Parser {
+	operLevels = make(map[string]int, 0)
+	operLevels[lexer.MULTI] = 1
+	operLevels[lexer.DIVIDE] = 1
+	operLevels[lexer.PLUS] = 2
+	operLevels[lexer.MINUS] = 2
+	operLevels[lexer.EQUAL] = 3
+	operLevels[lexer.GREATER] = 3
+	operLevels[lexer.LOWER] = 3
+	operLevels[lexer.GREATER_OR_EQUAL] = 3
+	operLevels[lexer.LOWER_OR_EQUAL] = 3
+	operLevels[lexer.AND] = 4
+	operLevels[lexer.OR] = 5
+
 	return &Parser{
 		l: l,
 	}

@@ -16,10 +16,15 @@ func main() {
 		return nil
 	})
 	eva.StartEvaluate(`
-		if 3 == 4 {
-			print("hello world")
+		let x = if 1 == 1 {
+			5
 		} else {
-			print("no one is here")
+			6
+		}
+		if x * 5 == 30 {
+			print("is six")
+		} else {
+			print("is five")
 		}
 	`)
 	// val, _ := eva.Global.GetVariable("x").(builtin.NumberObject)

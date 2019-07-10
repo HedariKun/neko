@@ -62,9 +62,15 @@ func evaluateExpression(val ast.Expression, scope ScopeInterface) builtin.Object
 		return evaluateCallExpression(val, scope)
 	case ast.IfExpression:
 		return evaluateIfExpression(val, scope)
+	case ast.Identifier:
+		return evaluateIdentifier(val, scope)
 	default:
 		return nil
 	}
+}
+
+func evaluateIdentifier(val ast.Identifier, scope ScopeInterface) builtin.Object {
+	return scope.GetVariable(val.Value)
 }
 
 func evaluateIfExpression(val ast.IfExpression, scope ScopeInterface) builtin.Object {

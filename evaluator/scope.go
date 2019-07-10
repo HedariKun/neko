@@ -21,7 +21,15 @@ type Scope struct {
 }
 
 func (s *Scope) GetVariable(name string) builtin.Object {
-	return s.Variables[name]
+	if s.Functions[name] != nil {
+		return s.Variables[name]
+	}
+
+	p, ok := s.Outer.(*Scope)
+	if !ok {
+		return s.Outer.GetVariable(name)
+	}
+	return p.GetVariable(name)
 }
 
 func (s *Scope) SetVariable(name string, value builtin.Object) {

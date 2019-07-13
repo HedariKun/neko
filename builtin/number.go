@@ -22,6 +22,10 @@ func (no NumberObject) CallMethod(name string, args []Object) Object {
 	return no.Methods[name](args)
 }
 
+func (no NumberObject) GetMethod(name string) Method {
+	return no.Methods[name]
+}
+
 func NewNumber(value float64) NumberObject {
 	no := NumberObject{
 		Value: value,

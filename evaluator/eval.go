@@ -16,7 +16,7 @@ func New() *Evaluator {
 	return &Evaluator{
 		Global: Global{
 			Variables: make(map[string]builtin.Object, 0),
-			Functions: make(map[string]Fun, 0),
+			Functions: make(map[string]builtin.FunObject, 0),
 		},
 	}
 }
@@ -64,13 +64,47 @@ func evaluateExpression(val ast.Expression, scope ScopeInterface) builtin.Object
 		return evaluateIfExpression(val, scope)
 	case ast.Identifier:
 		return evaluateIdentifier(val, scope)
+	case ast.FunExpression:
+		return evaluateFunExpression(val, scope)
 	default:
 		return nil
 	}
 }
 
+func evaluateFunExpression(val ast.FunExpression, scope ScopeInterface) builtin.Object {
+	body := func(args []builtin.Object) builtin.Object {
+		if len(args) < len(val.Parameters) {
+			// error handling
+		}
+
+		innerScope := NewScope()
+		innerScope.Outer = scope
+
+		for i, arg := range val.Parameters {
+			innerScope.SetVariable(arg.Value, args[i])
+		}
+
+		block, _ := val.Body.(ast.BlockExpression)
+		return evaluateBlockExpression(block, innerScope)
+	}
+
+	if val.Name.Value != "" {
+		scope.RegisterFun(val.Name.Value, body)
+		return nil
+	} else {
+		return builtin.NewFun(body)
+	}
+}
+
 func evaluateIdentifier(val ast.Identifier, scope ScopeInterface) builtin.Object {
-	return scope.GetVariable(val.Value)
+	if v := scope.GetVariable(val.Value); v != nil {
+		return v
+	}
+	if f := scope.GetFun(val.Value); f != nil {
+		return f
+	}
+	// error identifier doesn't exist ToDo
+	return nil
 }
 
 func evaluateIfExpression(val ast.IfExpression, scope ScopeInterface) builtin.Object {
@@ -106,7 +140,13 @@ func evaluateCallExpression(val ast.CallExpression, scope ScopeInterface) builti
 	for _, arg := range val.Args {
 		args = append(args, evaluateExpression(arg, scope))
 	}
-	return scope.GetFun(val.Ident.Value)(args)
+
+	if f := scope.GetVariable(val.Ident.Value); f != nil {
+		if fun := f.GetMethod("call"); fun != nil {
+			return fun(args)
+		}
+	}
+	return scope.GetFun(val.Ident.Value).CallMethod("call", args)
 }
 
 func evaluateOperationExpression(val ast.OperationExpression, scope ScopeInterface) builtin.Object {

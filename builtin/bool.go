@@ -1,4 +1,4 @@
- package neko
+package neko
 
 type BoolObject struct {
 	Value   bool
@@ -16,6 +16,10 @@ func (bo BoolObject) GetField(name string) Object {
 
 func (bo BoolObject) CallMethod(name string, args []Object) Object {
 	return bo.Methods[name](args)
+}
+
+func (bo BoolObject) GetMethod(name string) Method {
+	return bo.Methods[name]
 }
 
 func NewBool(value bool) BoolObject {

@@ -4,24 +4,24 @@ import (
 	builtin "github.com/hedarikun/neko/builtin"
 )
 
-type Fun func([]builtin.Object) builtin.Object
+type Fun func(args []builtin.Object) builtin.Object
 
 type ScopeInterface interface {
 	GetVariable(string) builtin.Object
 	SetVariable(string, builtin.Object)
-	RegisterFun(string, Fun)
+	RegisterFun(string, func([]builtin.Object) builtin.Object)
 	ExecuteFun(string, []builtin.Object) builtin.Object
-	GetFun(string) Fun
+	GetFun(string) builtin.Object
 }
 
 type Scope struct {
-	Functions map[string]Fun
+	Functions map[string]builtin.FunObject
 	Variables map[string]builtin.Object
 	Outer     ScopeInterface
 }
 
 func (s *Scope) GetVariable(name string) builtin.Object {
-	if s.Functions[name] != nil {
+	if _, ok := s.Functions[name]; !ok {
 		return s.Variables[name]
 	}
 
@@ -36,16 +36,16 @@ func (s *Scope) SetVariable(name string, value builtin.Object) {
 	s.Variables[name] = value
 }
 
-func (s *Scope) RegisterFun(name string, fun Fun) {
-	s.Functions[name] = fun
+func (s *Scope) RegisterFun(name string, fun func([]builtin.Object) builtin.Object) {
+	s.Functions[name] = builtin.NewFun(fun)
 }
 
 func (s *Scope) ExecuteFun(name string, args []builtin.Object) builtin.Object {
-	return s.Functions[name](args)
+	return s.Functions[name].CallMethod("call", args)
 }
 
-func (s *Scope) GetFun(name string) Fun {
-	if s.Functions[name] != nil {
+func (s *Scope) GetFun(name string) builtin.Object {
+	if _, ok := s.Functions[name]; ok {
 		return s.Functions[name]
 	}
 
@@ -58,13 +58,13 @@ func (s *Scope) GetFun(name string) Fun {
 
 func NewScope() *Scope {
 	s := Scope{}
-	s.Functions = make(map[string]Fun, 0)
+	s.Functions = make(map[string]builtin.FunObject, 0)
 	s.Variables = make(map[string]builtin.Object, 0)
 	return &s
 }
 
 type Global struct {
-	Functions map[string]Fun
+	Functions map[string]builtin.FunObject
 	Variables map[string]builtin.Object
 }
 
@@ -76,16 +76,16 @@ func (g *Global) SetVariable(name string, value builtin.Object) {
 	g.Variables[name] = value
 }
 
-func (g *Global) RegisterFun(name string, fun Fun) {
-	g.Functions[name] = fun
+func (g *Global) RegisterFun(name string, fun func([]builtin.Object) builtin.Object) {
+	g.Functions[name] = builtin.NewFun(fun)
 }
 
 func (g *Global) ExecuteFun(name string, args []builtin.Object) builtin.Object {
-	return g.Functions[name](args)
+	return g.Functions[name].CallMethod("call", args)
 }
 
-func (g *Global) GetFun(name string) Fun {
-	if g.Functions[name] == nil {
+func (g *Global) GetFun(name string) builtin.Object {
+	if _, ok := g.Functions[name]; !ok {
 		return nil
 	}
 	return g.Functions[name]

@@ -6,4 +6,5 @@ type Object interface {
 	SetField(string, Object)
 	GetField(string) Object
 	CallMethod(string, []Object) Object
+	GetMethod(string) Method
 }

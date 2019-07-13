@@ -18,6 +18,10 @@ func (so StringObject) CallMethod(name string, args []Object) Object {
 	return so.Methods[name](args)
 }
 
+func (so StringObject) GetMethod(name string) Method {
+	return so.Methods[name]
+}
+
 func NewString(value string) StringObject {
 	so := StringObject{
 		Value: value,

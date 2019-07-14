@@ -35,12 +35,14 @@ func NewNumber(value float64) NumberObject {
 		val := strconv.FormatFloat(no.Value, 'f', -1, 64)
 		return NewString(val)
 	}
-
+	no.Methods["toValue"] = func(args []Object) Object {
+		return no
+	}
 	no.Methods["add"] = func(args []Object) Object {
 		if len(args) <= 0 {
 			// error
 		}
-		right, ok := args[0].(NumberObject)
+		right, ok := args[0].CallMethod("toValue", nil).(NumberObject)
 		if !ok {
 			// error
 		}

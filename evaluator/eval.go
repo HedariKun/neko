@@ -138,7 +138,8 @@ func evaluateBlockExpression(val ast.BlockExpression, scope ScopeInterface) buil
 func evaluateCallExpression(val ast.CallExpression, scope ScopeInterface) builtin.Object {
 	var args []builtin.Object
 	for _, arg := range val.Args {
-		args = append(args, evaluateExpression(arg, scope))
+		val := evaluateExpression(arg, scope)
+		args = append(args, val)
 	}
 
 	if f := scope.GetVariable(val.Ident.Value); f != nil {
@@ -146,7 +147,14 @@ func evaluateCallExpression(val ast.CallExpression, scope ScopeInterface) builti
 			return fun(args)
 		}
 	}
-	return scope.GetFun(val.Ident.Value).CallMethod("call", args)
+
+	if f := scope.GetFun(val.Ident.Value); f != nil {
+		if fun := f.GetMethod("call"); fun != nil {
+			return fun(args)
+		}
+	}
+	//ToDo error handling
+	return nil
 }
 
 func evaluateOperationExpression(val ast.OperationExpression, scope ScopeInterface) builtin.Object {

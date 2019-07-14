@@ -16,10 +16,14 @@ func main() {
 		return nil
 	})
 	eva.StartEvaluate(`
-		fun add(x, y) {
-		 x + y
+		fun fib(x) {
+			if x == 0 || x == 1 {
+				x
+			} else {
+				fib(x - 1) + fib(x - 2)
+			}
 		}
-		print(add(10, 5))
+		print(fib(35))
 	`)
 	//val, _ := eva.Global.GetVariable("number").(builtin.NumberObject)
 	//fmt.Println(val.Value)

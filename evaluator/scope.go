@@ -21,15 +21,11 @@ type Scope struct {
 }
 
 func (s *Scope) GetVariable(name string) builtin.Object {
-	if _, ok := s.Functions[name]; !ok {
+	if _, ok := s.Variables[name]; ok {
 		return s.Variables[name]
 	}
 
-	p, ok := s.Outer.(*Scope)
-	if !ok {
-		return s.Outer.GetVariable(name)
-	}
-	return p.GetVariable(name)
+	return s.Outer.GetVariable(name)
 }
 
 func (s *Scope) SetVariable(name string, value builtin.Object) {
@@ -49,11 +45,7 @@ func (s *Scope) GetFun(name string) builtin.Object {
 		return s.Functions[name]
 	}
 
-	p, ok := s.Outer.(*Scope)
-	if !ok {
-		return s.Outer.GetFun(name)
-	}
-	return p.GetFun(name)
+	return s.Outer.GetFun(name)
 }
 
 func NewScope() *Scope {

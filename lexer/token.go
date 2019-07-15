@@ -15,7 +15,6 @@ func NewToken(t, v string) Token {
 const (
 	EOF              = "EOF"
 	BANG             = "bang"
-	POINT            = "point"
 	SEMI             = ";"
 	PLUS             = "+"
 	MINUS            = "-"
@@ -39,9 +38,12 @@ const (
 	FUN              = "fun"
 	IF               = "if"
 	ELSE             = "else"
+	OB               = "["
+	CB               = "]"
 	OCB              = "{"
 	CCB              = "}"
 	OP               = "("
 	CP               = ")"
 	COMMA            = ","
+	DOT              = "."
 )

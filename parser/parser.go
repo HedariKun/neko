@@ -76,6 +76,8 @@ func parseExpression(l *lexer.Lexer, curOperLevel int) ast.Expression {
 		leftExpression = parseStringExpression(l)
 	case lexer.BOOL:
 		leftExpression = parseBoolExpression(l)
+	case lexer.OB:
+		leftExpression = parseArrayExpression(l)
 	case lexer.IF:
 		leftExpression = parseIfExpression(l)
 	case lexer.OCB:
@@ -101,6 +103,8 @@ func parseIdentifier(l *lexer.Lexer) ast.Expression {
 	switch l.Peek().Type {
 	case lexer.OP:
 		return parseFunCall(l, ident)
+	case lexer.OB:
+		return parseArrayCall(l, ident)
 	}
 	return ident
 }
@@ -116,6 +120,25 @@ func parseFunCall(l *lexer.Lexer, ident ast.Identifier) ast.Expression {
 		Token: ident.Token,
 		Ident: ident,
 		Args:  args,
+	}
+}
+
+func parseArrayCall(l *lexer.Lexer, ident ast.Identifier) ast.Expression {
+	l.Next()
+	var index ast.Expression
+	if l.Peek().Type != lexer.CB {
+		index = parseExpression(l, 0)
+	}
+
+	if index == nil {
+		// error
+	}
+	l.Next()
+
+	return ast.ArrayCallExpression{
+		Token: ident.Token,
+		Ident: ident,
+		Index: index,
 	}
 }
 
@@ -186,6 +209,26 @@ func parseBoolExpression(l *lexer.Lexer) ast.Expression {
 	return ast.BoolExpression{
 		Token: token,
 		Value: value,
+	}
+}
+
+func parseArrayExpression(l *lexer.Lexer) ast.Expression {
+	token := l.Next()
+	var values []ast.Expression
+	for l.Peek().Type != lexer.CB {
+		exp := parseExpression(l, 0)
+		values = append(values, exp)
+		if l.Peek().Type != lexer.CB && l.Peek().Type != lexer.COMMA {
+			// error handling
+		}
+		if l.Peek().Type == lexer.COMMA {
+			l.Next()
+		}
+	}
+	l.Next()
+	return ast.ArrayExpression{
+		Token:  token,
+		Values: values,
 	}
 }
 

@@ -101,6 +101,17 @@ func (be BoolExpression) TokenLiteral() string {
 
 func (be BoolExpression) expressionNode() {}
 
+type ArrayExpression struct {
+	Token  lexer.Token
+	Values []Expression
+}
+
+func (ae ArrayExpression) TokenLiteral() string {
+	return ae.Token.Value
+}
+
+func (ae ArrayExpression) expressionNode() {}
+
 type OperationExpression struct {
 	Operator lexer.Token
 	Left     Expression
@@ -160,3 +171,15 @@ func (ce CallExpression) TokenLiteral() string {
 }
 
 func (ce CallExpression) expressionNode() {}
+
+type ArrayCallExpression struct {
+	Token lexer.Token
+	Ident Identifier
+	Index Expression
+}
+
+func (ae ArrayCallExpression) TokenLiteral() string {
+	return ae.Token.Value
+}
+
+func (ae ArrayCallExpression) expressionNode() {}

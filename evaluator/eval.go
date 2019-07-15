@@ -58,6 +58,8 @@ func evaluateExpression(val ast.Expression, scope ScopeInterface) builtin.Object
 		return evaluateString(val)
 	case ast.BoolExpression:
 		return evaluateBool(val)
+	case ast.ArrayExpression:
+		return evaluateArray(val, scope)
 	case ast.CallExpression:
 		return evaluateCallExpression(val, scope)
 	case ast.IfExpression:
@@ -66,9 +68,24 @@ func evaluateExpression(val ast.Expression, scope ScopeInterface) builtin.Object
 		return evaluateIdentifier(val, scope)
 	case ast.FunExpression:
 		return evaluateFunExpression(val, scope)
+	case ast.ArrayCallExpression:
+		return evaluateArrayExpreesion(val, scope)
 	default:
 		return nil
 	}
+}
+
+func evaluateArrayExpreesion(val ast.ArrayCallExpression, scope ScopeInterface) builtin.Object {
+	variable := scope.GetVariable(val.Ident.Value)
+	if variable == nil {
+		// error handling
+	}
+	fun := variable.GetMethod("indexOf")
+	if fun == nil {
+		// error handling
+	}
+	exp := evaluateExpression(val.Index, scope)
+	return fun([]builtin.Object{exp})
 }
 
 func evaluateFunExpression(val ast.FunExpression, scope ScopeInterface) builtin.Object {
@@ -199,4 +216,16 @@ func evaluateString(val ast.StringExpression) builtin.Object {
 
 func evaluateBool(val ast.BoolExpression) builtin.Object {
 	return builtin.NewBool(val.Value)
+}
+
+func evaluateArray(val ast.ArrayExpression, scope ScopeInterface) builtin.Object {
+	var objects []builtin.Object
+	for _, exp := range val.Values {
+		expVal := evaluateExpression(exp, scope)
+		if expVal == nil {
+			// error handling
+		}
+		objects = append(objects, expVal)
+	}
+	return builtin.NewArray(objects)
 }

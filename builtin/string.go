@@ -35,5 +35,15 @@ func NewString(value string) StringObject {
 		right, _ := arg.CallMethod("toString", nil).(StringObject)
 		return NewString(so.Value + right.Value)
 	}
+	so.Methods["indexOf"] = func(args []Object) Object {
+		val, ok := args[0].(NumberObject)
+		if !ok {
+			// error handling
+		}
+		if len(so.Value) < int(val.Value) {
+			// error
+		}
+		return NewString(string([]rune(so.Value)[int(val.Value)]))
+	}
 	return so
 }

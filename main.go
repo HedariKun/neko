@@ -16,14 +16,8 @@ func main() {
 		return nil
 	})
 	eva.StartEvaluate(`
-		fun fib(x) {
-			if x == 0 || x == 1 {
-				x
-			} else {
-				fib(x - 1) + fib(x - 2)
-			}
-		}
-		print(fib(35))
+		let x = [5+1, 2, "hello"]
+		print(x[2])
 	`)
 	//val, _ := eva.Global.GetVariable("number").(builtin.NumberObject)
 	//fmt.Println(val.Value)

@@ -30,6 +30,8 @@ func NewNumber(value float64) NumberObject {
 	no := NumberObject{
 		Value: value,
 	}
+	no.Fields = make(map[string]Object, 0)
+	no.Fields["s"] = NewString("hello world")
 	no.Methods = make(map[string]Method, 0)
 	no.Methods["toString"] = func(args []Object) Object {
 		val := strconv.FormatFloat(no.Value, 'f', -1, 64)

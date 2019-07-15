@@ -183,3 +183,15 @@ func (ae ArrayCallExpression) TokenLiteral() string {
 }
 
 func (ae ArrayCallExpression) expressionNode() {}
+
+type FieldCallExpression struct {
+	Token lexer.Token
+	Ident Identifier
+	Child Expression
+}
+
+func (fe FieldCallExpression) TokenLiteral() string {
+	return fe.Token.Value
+}
+
+func (fe FieldCallExpression) expressionNode() {}

@@ -24,6 +24,9 @@ func (s *Scope) GetVariable(name string) builtin.Object {
 	if _, ok := s.Variables[name]; ok {
 		return s.Variables[name]
 	}
+	if _, ok := s.Functions[name]; ok {
+		return s.Functions[name]
+	}
 
 	return s.Outer.GetVariable(name)
 }

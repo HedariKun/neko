@@ -27,7 +27,7 @@ func (e *Evaluator) StartEvaluate(context string) {
 	lex.Lexerize()
 	p := parser.New(lex)
 	prog := p.Parse()
-	//  fmt.Printf("%+v", prog.Statements)
+	//fmt.Printf("%+v", prog.Statements)
 	for _, statement := range prog.Statements {
 		evaluateStatement(statement, &e.Global)
 	}
@@ -70,9 +70,65 @@ func evaluateExpression(val ast.Expression, scope ScopeInterface) builtin.Object
 		return evaluateFunExpression(val, scope)
 	case ast.ArrayCallExpression:
 		return evaluateArrayExpreesion(val, scope)
+	case ast.FieldCallExpression:
+		return evaluateFieldCallExpression(val, scope, nil)
 	default:
 		return nil
 	}
+}
+
+func evaluateFieldCallExpression(val ast.FieldCallExpression, scope ScopeInterface, child builtin.Object) builtin.Object {
+	child = scope.GetVariable(val.Ident.Value)
+	if fce, ok := val.Child.(ast.FieldCallExpression); ok {
+		return evaluateFieldCallExpression(fce, scope, child)
+	} else {
+		switch v := val.Child.(type) {
+		case ast.Identifier:
+			return child.GetField(v.Value)
+		case ast.CallExpression:
+
+			fun := child.GetMethod(v.Ident.Value)
+			var args []builtin.Object
+			for _, arg := range v.Args {
+				val := evaluateExpression(arg, scope)
+				args = append(args, val)
+			}
+
+			if fun == nil {
+				if field := child.GetField(v.Ident.Value); field != nil {
+					if f := field.GetMethod("call"); f != nil {
+						fun = f
+					}
+				} else {
+					// error handling
+				}
+			}
+
+			return fun(args)
+
+			//error handling
+			return nil
+
+		case ast.ArrayCallExpression:
+			array := child.GetField(v.Ident.Value)
+			if array == nil {
+				// error handling
+			}
+			if method := array.GetMethod("indexOf"); method != nil {
+				index := evaluateExpression(v.Index, scope)
+				if index == nil {
+					// error handling
+				}
+				return method([]builtin.Object{index})
+			} else {
+				// error handling
+			}
+			return nil
+		}
+	}
+
+	// error handling
+	return nil
 }
 
 func evaluateArrayExpreesion(val ast.ArrayCallExpression, scope ScopeInterface) builtin.Object {

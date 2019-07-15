@@ -105,6 +105,8 @@ func parseIdentifier(l *lexer.Lexer) ast.Expression {
 		return parseFunCall(l, ident)
 	case lexer.OB:
 		return parseArrayCall(l, ident)
+	case lexer.DOT:
+		return parseFieldCall(l, ident)
 	}
 	return ident
 }
@@ -139,6 +141,22 @@ func parseArrayCall(l *lexer.Lexer, ident ast.Identifier) ast.Expression {
 		Token: ident.Token,
 		Ident: ident,
 		Index: index,
+	}
+}
+
+func parseFieldCall(l *lexer.Lexer, ident ast.Identifier) ast.Expression {
+	l.Next()
+	if l.Peek().Type != lexer.IDENT {
+		// error handling
+	}
+	child := parseIdentifier(l)
+	if child == nil {
+		// error
+	}
+	return ast.FieldCallExpression{
+		Token: ident.Token,
+		Ident: ident,
+		Child: child,
 	}
 }
 

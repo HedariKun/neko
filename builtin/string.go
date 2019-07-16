@@ -2,28 +2,37 @@ package neko
 
 type StringObject struct {
 	Value   string
+	Mut     bool
 	Fields  map[string]Object
 	Methods map[string]Method
 }
 
-func (so StringObject) SetField(name string, val Object) {
+func (so *StringObject) IsMutable() bool {
+	return so.Mut
+}
+
+func (so *StringObject) SetMutable(value bool) {
+	so.Mut = value
+}
+
+func (so *StringObject) SetField(name string, val Object) {
 	so.Fields[name] = val
 }
 
-func (so StringObject) GetField(name string) Object {
+func (so *StringObject) GetField(name string) Object {
 	return so.Fields[name]
 }
 
-func (so StringObject) CallMethod(name string, args []Object) Object {
+func (so *StringObject) CallMethod(name string, args []Object) Object {
 	return so.Methods[name](args)
 }
 
-func (so StringObject) GetMethod(name string) Method {
+func (so *StringObject) GetMethod(name string) Method {
 	return so.Methods[name]
 }
 
-func NewString(value string) StringObject {
-	so := StringObject{
+func NewString(value string) Object {
+	so := &StringObject{
 		Value: value,
 	}
 	so.Methods = make(map[string]Method, 0)
@@ -32,11 +41,11 @@ func NewString(value string) StringObject {
 	}
 	so.Methods["add"] = func(args []Object) Object {
 		arg := args[0]
-		right, _ := arg.CallMethod("toString", nil).(StringObject)
+		right, _ := arg.CallMethod("toString", nil).(*StringObject)
 		return NewString(so.Value + right.Value)
 	}
 	so.Methods["indexOf"] = func(args []Object) Object {
-		val, ok := args[0].(NumberObject)
+		val, ok := args[0].(*NumberObject)
 		if !ok {
 			// error handling
 		}

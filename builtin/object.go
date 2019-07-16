@@ -7,4 +7,6 @@ type Object interface {
 	GetField(string) Object
 	CallMethod(string, []Object) Object
 	GetMethod(string) Method
+	IsMutable() bool
+	SetMutable(bool)
 }

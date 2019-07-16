@@ -13,7 +13,8 @@ func NewToken(t, v string) Token {
 }
 
 const (
-	EOF              = "EOF"
+	EOF = "EOF"
+
 	BANG             = "bang"
 	SEMI             = ";"
 	PLUS             = "+"
@@ -28,16 +29,6 @@ const (
 	ASSIGN           = "="
 	OR               = "||"
 	AND              = "&&"
-	STRING           = "string"
-	NUMBER           = "number"
-	BOOL             = "bool"
-	FALSE            = "false"
-	TRUE             = "true"
-	IDENT            = "ident"
-	LET              = "let"
-	FUN              = "fun"
-	IF               = "if"
-	ELSE             = "else"
 	OB               = "["
 	CB               = "]"
 	OCB              = "{"
@@ -46,4 +37,17 @@ const (
 	CP               = ")"
 	COMMA            = ","
 	DOT              = "."
+
+	STRING = "string"
+	NUMBER = "number"
+	BOOL   = "bool"
+	FALSE  = "false"
+	TRUE   = "true"
+
+	IDENT = "ident"
+	LET   = "let"
+	FUN   = "fun"
+	IF    = "if"
+	ELSE  = "else"
+	MUT   = "mut"
 )

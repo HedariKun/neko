@@ -15,7 +15,7 @@ type ScopeInterface interface {
 }
 
 type Scope struct {
-	Functions map[string]builtin.FunObject
+	Functions map[string]*builtin.FunObject
 	Variables map[string]builtin.Object
 	Outer     ScopeInterface
 }
@@ -36,7 +36,7 @@ func (s *Scope) SetVariable(name string, value builtin.Object) {
 }
 
 func (s *Scope) RegisterFun(name string, fun func([]builtin.Object) builtin.Object) {
-	s.Functions[name] = builtin.NewFun(fun)
+	s.Functions[name] = builtin.NewFun(fun).(*builtin.FunObject)
 }
 
 func (s *Scope) ExecuteFun(name string, args []builtin.Object) builtin.Object {
@@ -53,13 +53,13 @@ func (s *Scope) GetFun(name string) builtin.Object {
 
 func NewScope() *Scope {
 	s := Scope{}
-	s.Functions = make(map[string]builtin.FunObject, 0)
+	s.Functions = make(map[string]*builtin.FunObject, 0)
 	s.Variables = make(map[string]builtin.Object, 0)
 	return &s
 }
 
 type Global struct {
-	Functions map[string]builtin.FunObject
+	Functions map[string]*builtin.FunObject
 	Variables map[string]builtin.Object
 }
 
@@ -72,7 +72,7 @@ func (g *Global) SetVariable(name string, value builtin.Object) {
 }
 
 func (g *Global) RegisterFun(name string, fun func([]builtin.Object) builtin.Object) {
-	g.Functions[name] = builtin.NewFun(fun)
+	g.Functions[name] = builtin.NewFun(fun).(*builtin.FunObject)
 }
 
 func (g *Global) ExecuteFun(name string, args []builtin.Object) builtin.Object {

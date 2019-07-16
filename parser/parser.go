@@ -43,6 +43,11 @@ func parseExpressionStatement(l *lexer.Lexer) ast.Statement {
 
 func parseLetStatement(l *lexer.Lexer) ast.Statement {
 	literal := l.Next()
+	mut := false
+	if l.Peek().Type == lexer.MUT {
+		l.Next()
+		mut = true
+	}
 
 	if l.Peek().Type != lexer.IDENT {
 		// error handling
@@ -58,6 +63,7 @@ func parseLetStatement(l *lexer.Lexer) ast.Statement {
 
 	return ast.LetStatment{
 		Token: literal,
+		Mut:   mut,
 		Name: ast.Identifier{
 			Token: name,
 			Value: name.Value,
@@ -118,7 +124,27 @@ func parseCallOperation(l *lexer.Lexer, expression ast.Expression) ast.Expressio
 
 func parseIdentifier(l *lexer.Lexer) ast.Expression {
 	t := l.Next()
-	return ast.Identifier{Token: t, Value: t.Value}
+	ident := ast.Identifier{Token: t, Value: t.Value}
+	if l.Peek().Type == lexer.ASSIGN {
+		return parseAssignmentExpression(l, ident)
+	}
+	return ident
+}
+
+func parseAssignmentExpression(l *lexer.Lexer, ident ast.Identifier) ast.Expression {
+	l.Next()
+	if l.EOF() {
+		// error handling
+	}
+	value := parseExpression(l, 0)
+	if value == nil {
+		// error handling
+	}
+	return ast.AssignmentExpression{
+		Token: ident.Token,
+		Ident: ident,
+		Value: value,
+	}
 }
 
 func parseFunCall(l *lexer.Lexer, ident ast.Expression) ast.Expression {

@@ -24,6 +24,7 @@ type Program struct {
 
 type LetStatment struct {
 	Token lexer.Token
+	Mut   bool
 	Name  Identifier
 	Value Expression
 }
@@ -33,6 +34,18 @@ func (ls LetStatment) TokenLiteral() string {
 }
 
 func (ls LetStatment) statementNode() {}
+
+type AssignmentExpression struct {
+	Token lexer.Token
+	Ident Identifier
+	Value Expression
+}
+
+func (ae AssignmentExpression) TokenLiteral() string {
+	return ae.Token.Value
+}
+
+func (ae AssignmentExpression) expressionNode() {}
 
 type BlockExpression struct {
 	Statements []Statement

@@ -16,7 +16,7 @@ func New() *Evaluator {
 	return &Evaluator{
 		Global: Global{
 			Variables: make(map[string]builtin.Object, 0),
-			Functions: make(map[string]builtin.FunObject, 0),
+			Functions: make(map[string]*builtin.FunObject, 0),
 		},
 	}
 }
@@ -40,6 +40,7 @@ func evaluateStatement(statement ast.Statement, scope ScopeInterface) builtin.Ob
 		return evaluateExpression(val.Value, scope)
 	case ast.LetStatment:
 		value := evaluateExpression(val.Value, scope)
+		value.SetMutable(val.Mut)
 		if value != nil {
 			scope.SetVariable(val.Name.Value, value)
 		}
@@ -76,9 +77,29 @@ func evaluateExpression(val ast.Expression, scope ScopeInterface) builtin.Object
 		innerScope := NewScope()
 		innerScope.Outer = scope
 		return evaluateBlockExpression(val, scope)
+	case ast.AssignmentExpression:
+		return evaluateAssignment(val, scope)
 	default:
 		return nil
 	}
+}
+
+func evaluateAssignment(val ast.AssignmentExpression, scope ScopeInterface) builtin.Object {
+	variable := scope.GetVariable(val.Ident.Value)
+	if variable == nil {
+		// error handling
+	}
+
+	if variable.IsMutable() {
+		value := evaluateExpression(val.Value, scope)
+		if value == nil {
+			// error handling
+		}
+		scope.SetVariable(val.Ident.Value, value)
+		return value
+	}
+	//error handling
+	return nil
 }
 
 func evaluateFieldCallExpression(val ast.FieldCallExpression, scope ScopeInterface, child builtin.Object) builtin.Object {
@@ -100,7 +121,6 @@ func evaluateArrayExpreesion(val ast.ArrayCallExpression, scope ScopeInterface) 
 	}
 	fun := variable.GetMethod("indexOf")
 	if fun == nil {
-		println("happens")
 		// error handling
 	}
 	exp := evaluateExpression(val.Index, scope)
@@ -145,7 +165,7 @@ func evaluateIdentifier(val ast.Identifier, scope ScopeInterface) builtin.Object
 
 func evaluateIfExpression(val ast.IfExpression, scope ScopeInterface) builtin.Object {
 	exp := evaluateExpression(val.Condition, scope)
-	boolean, ok := exp.(builtin.BoolObject)
+	boolean, ok := exp.(*builtin.BoolObject)
 	if !ok {
 		// error
 	}

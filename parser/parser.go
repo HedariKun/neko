@@ -89,7 +89,7 @@ func parseExpression(l *lexer.Lexer, curOperLevel int) ast.Expression {
 	default:
 		// undefined: error handle
 	}
-
+	leftExpression = parseCallOperation(l, leftExpression)
 	for !l.EOF() && isOperation(l.Peek()) && (operLevels[l.Peek().Type] < curOperLevel || curOperLevel == 0) {
 		leftExpression = parseOperationExpression(l, leftExpression)
 	}
@@ -97,21 +97,31 @@ func parseExpression(l *lexer.Lexer, curOperLevel int) ast.Expression {
 	return leftExpression
 }
 
-func parseIdentifier(l *lexer.Lexer) ast.Expression {
-	t := l.Next()
-	ident := ast.Identifier{Token: t, Value: t.Value}
-	switch l.Peek().Type {
-	case lexer.OP:
-		return parseFunCall(l, ident)
-	case lexer.OB:
-		return parseArrayCall(l, ident)
-	case lexer.DOT:
-		return parseFieldCall(l, ident)
+func parseCallOperation(l *lexer.Lexer, expression ast.Expression) ast.Expression {
+	if l.EOF() {
+		return expression
 	}
-	return ident
+	token := l.Peek()
+	for token.Type == lexer.OP || token.Type == lexer.OB || token.Type == lexer.DOT {
+		switch token.Value {
+		case lexer.OP:
+			expression = parseFunCall(l, expression)
+		case lexer.OB:
+			expression = parseArrayCall(l, expression)
+		case lexer.DOT:
+			expression = parseFieldCall(l, expression)
+		}
+		token = l.Peek()
+	}
+	return expression
 }
 
-func parseFunCall(l *lexer.Lexer, ident ast.Identifier) ast.Expression {
+func parseIdentifier(l *lexer.Lexer) ast.Expression {
+	t := l.Next()
+	return ast.Identifier{Token: t, Value: t.Value}
+}
+
+func parseFunCall(l *lexer.Lexer, ident ast.Expression) ast.Expression {
 	l.Next()
 	var args []ast.Expression
 	if l.Peek().Type != lexer.CP {
@@ -119,13 +129,12 @@ func parseFunCall(l *lexer.Lexer, ident ast.Identifier) ast.Expression {
 	}
 	l.Next()
 	return ast.CallExpression{
-		Token: ident.Token,
-		Ident: ident,
-		Args:  args,
+		Object: ident,
+		Args:   args,
 	}
 }
 
-func parseArrayCall(l *lexer.Lexer, ident ast.Identifier) ast.Expression {
+func parseArrayCall(l *lexer.Lexer, ident ast.Expression) ast.Expression {
 	l.Next()
 	var index ast.Expression
 	if l.Peek().Type != lexer.CB {
@@ -138,25 +147,23 @@ func parseArrayCall(l *lexer.Lexer, ident ast.Identifier) ast.Expression {
 	l.Next()
 
 	return ast.ArrayCallExpression{
-		Token: ident.Token,
-		Ident: ident,
-		Index: index,
+		Object: ident,
+		Index:  index,
 	}
 }
 
-func parseFieldCall(l *lexer.Lexer, ident ast.Identifier) ast.Expression {
+func parseFieldCall(l *lexer.Lexer, ident ast.Expression) ast.Expression {
 	l.Next()
 	if l.Peek().Type != lexer.IDENT {
 		// error handling
 	}
-	child := parseIdentifier(l)
-	if child == nil {
+	child, ok := parseIdentifier(l).(ast.Identifier)
+	if !ok {
 		// error
 	}
 	return ast.FieldCallExpression{
-		Token: ident.Token,
-		Ident: ident,
-		Child: child,
+		Object: ident,
+		Child:  child,
 	}
 }
 

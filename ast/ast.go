@@ -161,9 +161,9 @@ func (fe FunExpression) TokenLiteral() string {
 func (fe FunExpression) expressionNode() {}
 
 type CallExpression struct {
-	Token lexer.Token
-	Ident Identifier
-	Args  []Expression
+	Token  lexer.Token
+	Object Expression
+	Args   []Expression
 }
 
 func (ce CallExpression) TokenLiteral() string {
@@ -173,9 +173,9 @@ func (ce CallExpression) TokenLiteral() string {
 func (ce CallExpression) expressionNode() {}
 
 type ArrayCallExpression struct {
-	Token lexer.Token
-	Ident Identifier
-	Index Expression
+	Token  lexer.Token
+	Object Expression
+	Index  Expression
 }
 
 func (ae ArrayCallExpression) TokenLiteral() string {
@@ -185,9 +185,9 @@ func (ae ArrayCallExpression) TokenLiteral() string {
 func (ae ArrayCallExpression) expressionNode() {}
 
 type FieldCallExpression struct {
-	Token lexer.Token
-	Ident Identifier
-	Child Expression
+	Token  lexer.Token
+	Object Expression
+	Child  Identifier
 }
 
 func (fe FieldCallExpression) TokenLiteral() string {

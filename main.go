@@ -16,9 +16,8 @@ func main() {
 		return nil
 	})
 	eva.StartEvaluate(`
-		let x = 55432
-		let y = x.toString()
-		print(x.s)
+		let x = [25, "hello", true]
+		print(1 + x[2])
 	`)
 	//val, _ := eva.Global.GetVariable("number").(builtin.NumberObject)
 	//fmt.Println(val.Value)

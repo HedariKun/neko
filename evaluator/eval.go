@@ -72,72 +72,35 @@ func evaluateExpression(val ast.Expression, scope ScopeInterface) builtin.Object
 		return evaluateArrayExpreesion(val, scope)
 	case ast.FieldCallExpression:
 		return evaluateFieldCallExpression(val, scope, nil)
+	case ast.BlockExpression:
+		innerScope := NewScope()
+		innerScope.Outer = scope
+		return evaluateBlockExpression(val, scope)
 	default:
 		return nil
 	}
 }
 
 func evaluateFieldCallExpression(val ast.FieldCallExpression, scope ScopeInterface, child builtin.Object) builtin.Object {
-	child = scope.GetVariable(val.Ident.Value)
-	if fce, ok := val.Child.(ast.FieldCallExpression); ok {
-		return evaluateFieldCallExpression(fce, scope, child)
-	} else {
-		switch v := val.Child.(type) {
-		case ast.Identifier:
-			return child.GetField(v.Value)
-		case ast.CallExpression:
-
-			fun := child.GetMethod(v.Ident.Value)
-			var args []builtin.Object
-			for _, arg := range v.Args {
-				val := evaluateExpression(arg, scope)
-				args = append(args, val)
-			}
-
-			if fun == nil {
-				if field := child.GetField(v.Ident.Value); field != nil {
-					if f := field.GetMethod("call"); f != nil {
-						fun = f
-					}
-				} else {
-					// error handling
-				}
-			}
-
-			return fun(args)
-
-			//error handling
-			return nil
-
-		case ast.ArrayCallExpression:
-			array := child.GetField(v.Ident.Value)
-			if array == nil {
-				// error handling
-			}
-			if method := array.GetMethod("indexOf"); method != nil {
-				index := evaluateExpression(v.Index, scope)
-				if index == nil {
-					// error handling
-				}
-				return method([]builtin.Object{index})
-			} else {
-				// error handling
-			}
-			return nil
-		}
+	object := evaluateExpression(val.Object, scope)
+	value := object.GetField(val.Child.Value)
+	if value == nil {
+		value = builtin.NewFun(object.GetMethod(val.Child.Value))
 	}
-
-	// error handling
-	return nil
+	if value == nil {
+		// error handling
+	}
+	return value
 }
 
 func evaluateArrayExpreesion(val ast.ArrayCallExpression, scope ScopeInterface) builtin.Object {
-	variable := scope.GetVariable(val.Ident.Value)
+	variable := evaluateExpression(val.Object, scope)
 	if variable == nil {
 		// error handling
 	}
 	fun := variable.GetMethod("indexOf")
 	if fun == nil {
+		println("happens")
 		// error handling
 	}
 	exp := evaluateExpression(val.Index, scope)
@@ -215,16 +178,9 @@ func evaluateCallExpression(val ast.CallExpression, scope ScopeInterface) builti
 		args = append(args, val)
 	}
 
-	if f := scope.GetVariable(val.Ident.Value); f != nil {
-		if fun := f.GetMethod("call"); fun != nil {
-			return fun(args)
-		}
-	}
-
-	if f := scope.GetFun(val.Ident.Value); f != nil {
-		if fun := f.GetMethod("call"); fun != nil {
-			return fun(args)
-		}
+	exp := evaluateExpression(val.Object, scope)
+	if method := exp.GetMethod("call"); method != nil {
+		return method(args)
 	}
 	//ToDo error handling
 	return nil

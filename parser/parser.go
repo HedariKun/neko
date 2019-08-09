@@ -32,6 +32,8 @@ func parseStatement(l *lexer.Lexer) ast.Statement {
 		return parseLetStatement(l)
 	case lexer.STRUCT:
 		return parseStructStatement(l)
+	case lexer.IMPL:
+		return parseImplStatement(l)
 	default:
 		return parseExpressionStatement(l)
 	}
@@ -40,6 +42,32 @@ func parseStatement(l *lexer.Lexer) ast.Statement {
 func parseExpressionStatement(l *lexer.Lexer) ast.Statement {
 	return ast.ExpressionStatment{
 		Value: parseExpression(l, 0),
+	}
+}
+
+func parseImplStatement(l *lexer.Lexer) ast.Statement {
+	literal := l.Next()
+	if l.EOF() || l.Peek().Type != lexer.IDENT {
+		// error
+	}
+	structIdentifier := l.Next()
+
+	if l.EOF() || l.Peek().Type != lexer.OCB {
+		// error
+	}
+	l.Next()
+	var funs []ast.Expression
+	for l.Peek().Type != lexer.CCB {
+		if l.Peek().Type != lexer.FUN {
+			// error
+		}
+		funs = append(funs, parseFunExpression(l))
+	}
+	l.Next()
+	return ast.ImplStatement{
+		Token:  literal,
+		Struct: ast.Identifier{structIdentifier, structIdentifier.Value},
+		Funs:   funs,
 	}
 }
 

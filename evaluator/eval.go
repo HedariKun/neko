@@ -27,6 +27,7 @@ func (e *Evaluator) StartEvaluate(context string) {
 	lex.Lexerize()
 	p := parser.New(lex)
 	prog := p.Parse()
+	//fmt.Println(prog.Statements)
 	for _, statement := range prog.Statements {
 		evaluateStatement(statement, &e.Global)
 	}
@@ -46,6 +47,8 @@ func evaluateStatement(statement ast.Statement, scope ScopeInterface) builtin.Ob
 	case ast.StructStatement:
 		value := evaluateStructStatement(val)
 		scope.SetVariable(val.Name.Value, value)
+	case ast.ImplStatement:
+		evaluateImplStatement(val, scope)
 	}
 
 	return nil
@@ -57,6 +60,29 @@ func evaluateStructStatement(val ast.StructStatement) builtin.Object {
 		props = append(props, value.Value)
 	}
 	return builtin.NewStruct(props)
+}
+
+func evaluateImplStatement(val ast.ImplStatement, scope ScopeInterface) {
+	var funs []builtin.Object
+
+	str := scope.GetVariable(val.Struct.Value).(*builtin.StructObject)
+	if str == nil {
+		// error
+	}
+
+	innerScope := NewScope()
+	innerScope.Outer = scope
+
+	for _, value := range val.Funs {
+		funExpression := value.(ast.FunExpression)
+		funs = append(funs, evaluateFunExpression(funExpression, innerScope))
+	}
+
+	for key, value := range innerScope.Functions {
+		str.Meth[key] = func(args []builtin.Object) builtin.Object {
+			return value.CallMethod("call", args)
+		}
+	}
 }
 
 func evaluateExpression(val ast.Expression, scope ScopeInterface) builtin.Object {

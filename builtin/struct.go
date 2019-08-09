@@ -16,6 +16,16 @@ func NewStruct(props []string) Object {
 
 	so.Methods["new"] = func(args []Object) Object {
 		no := NewObject()
+		for key, value := range so.Meth {
+			no.SetMethod(key, func(args []Object) Object {
+				fargs := []Object{}
+				fargs = append(fargs, no)
+				for _, value := range args {
+					fargs = append(fargs, value)
+				}
+				return value(fargs)
+			})
+		}
 		for index, value := range so.Props {
 			if len(args) > index {
 				no.SetField(value, args[index])

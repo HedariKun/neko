@@ -51,4 +51,5 @@ const (
 	ELSE   = "else"
 	MUT    = "mut"
 	STRUCT = "struct"
+	IMPL   = "impl"
 )

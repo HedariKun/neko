@@ -6,6 +6,7 @@ type Object interface {
 	SetField(string, Object)
 	GetField(string) Object
 	CallMethod(string, []Object) Object
+	SetMethod(string, Method)
 	GetMethod(string) Method
 	IsMutable() bool
 	SetMutable(bool)
@@ -27,6 +28,10 @@ func (eo *EmptyObject) GetField(name string) Object {
 
 func (eo *EmptyObject) CallMethod(name string, args []Object) Object {
 	return eo.Methods[name](args)
+}
+
+func (eo *EmptyObject) SetMethod(name string, method Method) {
+	eo.Methods[name] = method
 }
 
 func (eo *EmptyObject) GetMethod(name string) Method {

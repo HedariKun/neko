@@ -47,6 +47,18 @@ func (ss StructStatement) TokenLiteral() string {
 
 func (ss StructStatement) statementNode() {}
 
+type ImplStatement struct {
+	Token  lexer.Token
+	Struct Identifier
+	Funs   []Expression
+}
+
+func (is ImplStatement) TokenLiteral() string {
+	return is.Token.Type
+}
+
+func (is ImplStatement) statementNode() {}
+
 type AssignmentExpression struct {
 	Token lexer.Token
 	Ident Identifier

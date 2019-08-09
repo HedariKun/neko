@@ -5,34 +5,8 @@ import (
 )
 
 type NumberObject struct {
-	Value   float64
-	Mut     bool
-	Fields  map[string]Object
-	Methods map[string]Method
-}
-
-func (no *NumberObject) IsMutable() bool {
-	return no.Mut
-}
-
-func (no *NumberObject) SetMutable(value bool) {
-	no.Mut = value
-}
-
-func (no *NumberObject) SetField(name string, val Object) {
-	no.Fields[name] = val
-}
-
-func (no *NumberObject) GetField(name string) Object {
-	return no.Fields[name]
-}
-
-func (no *NumberObject) CallMethod(name string, args []Object) Object {
-	return no.Methods[name](args)
-}
-
-func (no *NumberObject) GetMethod(name string) Method {
-	return no.Methods[name]
+	EmptyObject
+	Value float64
 }
 
 func NewNumber(value float64) Object {

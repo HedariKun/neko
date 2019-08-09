@@ -22,18 +22,30 @@ type Program struct {
 	Statements []Statement
 }
 
-type LetStatment struct {
+type LetStatement struct {
 	Token lexer.Token
 	Mut   bool
 	Name  Identifier
 	Value Expression
 }
 
-func (ls LetStatment) TokenLiteral() string {
+func (ls LetStatement) TokenLiteral() string {
 	return ls.Token.Type
 }
 
-func (ls LetStatment) statementNode() {}
+func (ls LetStatement) statementNode() {}
+
+type StructStatement struct {
+	Token lexer.Token
+	Name  Identifier
+	Props []Identifier
+}
+
+func (ss StructStatement) TokenLiteral() string {
+	return ss.Token.Type
+}
+
+func (ss StructStatement) statementNode() {}
 
 type AssignmentExpression struct {
 	Token lexer.Token

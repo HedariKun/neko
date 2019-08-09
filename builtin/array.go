@@ -1,41 +1,33 @@
 package neko
 
 type ArrayObject struct {
-	Values  []Object
-	Mut     bool
-	Fields  map[string]Object
-	Methods map[string]Method
+	EmptyObject
+	Values []Object
 }
 
-func (ao *ArrayObject) IsMutable() bool {
-	return ao.Mut
-}
-
-func (ao *ArrayObject) SetMutable(value bool) {
-	ao.Mut = value
-}
-
-func (ao *ArrayObject) SetField(name string, val Object) {
-	ao.Fields[name] = val
-}
-
-func (ao *ArrayObject) GetField(name string) Object {
-	return ao.Fields[name]
-}
-
-func (ao *ArrayObject) CallMethod(name string, args []Object) Object {
-	return ao.Methods[name](args)
-}
-
-func (ao *ArrayObject) GetMethod(name string) Method {
-	return ao.Methods[name]
+func (ao *ArrayObject) addElement(element Object) {
+	if !ao.IsMutable() {
+		// error handling
+	}
+	ao.Values = append(ao.Values, element)
 }
 
 func NewArray(values []Object) Object {
 	arr := &ArrayObject{
-		Values:  values,
-		Fields:  make(map[string]Object, 0),
-		Methods: make(map[string]Method, 0),
+		Values: values,
+	}
+
+	arr.Fields = make(map[string]Object, 0)
+	arr.Methods = make(map[string]Method, 0)
+
+	arr.Methods["push"] = func(args []Object) Object {
+		if args[0] == nil {
+			// error handling
+		}
+		for _, element := range args {
+			arr.addElement(element)
+		}
+		return arr
 	}
 
 	arr.Methods["indexOf"] = func(args []Object) Object {

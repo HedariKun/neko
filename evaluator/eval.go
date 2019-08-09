@@ -27,7 +27,6 @@ func (e *Evaluator) StartEvaluate(context string) {
 	lex.Lexerize()
 	p := parser.New(lex)
 	prog := p.Parse()
-	//fmt.Printf("%+v", prog.Statements)
 	for _, statement := range prog.Statements {
 		evaluateStatement(statement, &e.Global)
 	}
@@ -38,15 +37,26 @@ func evaluateStatement(statement ast.Statement, scope ScopeInterface) builtin.Ob
 	switch val := statement.(type) {
 	case ast.ExpressionStatment:
 		return evaluateExpression(val.Value, scope)
-	case ast.LetStatment:
+	case ast.LetStatement:
 		value := evaluateExpression(val.Value, scope)
 		value.SetMutable(val.Mut)
 		if value != nil {
 			scope.SetVariable(val.Name.Value, value)
 		}
+	case ast.StructStatement:
+		value := evaluateStructStatement(val)
+		scope.SetVariable(val.Name.Value, value)
 	}
 
 	return nil
+}
+
+func evaluateStructStatement(val ast.StructStatement) builtin.Object {
+	props := []string{}
+	for _, value := range val.Props {
+		props = append(props, value.Value)
+	}
+	return builtin.NewStruct(props)
 }
 
 func evaluateExpression(val ast.Expression, scope ScopeInterface) builtin.Object {
@@ -146,7 +156,8 @@ func evaluateFunExpression(val ast.FunExpression, scope ScopeInterface) builtin.
 
 	if val.Name.Value != "" {
 		scope.RegisterFun(val.Name.Value, body)
-		return nil
+		//todo remove this later
+		return builtin.NewFun(body)
 	} else {
 		return builtin.NewFun(body)
 	}
@@ -159,7 +170,7 @@ func evaluateIdentifier(val ast.Identifier, scope ScopeInterface) builtin.Object
 	if f := scope.GetFun(val.Value); f != nil {
 		return f
 	}
-	// error identifier doesn't exist ToDo
+	//todo error handling
 	return nil
 }
 
@@ -197,7 +208,6 @@ func evaluateCallExpression(val ast.CallExpression, scope ScopeInterface) builti
 		val := evaluateExpression(arg, scope)
 		args = append(args, val)
 	}
-
 	exp := evaluateExpression(val.Object, scope)
 	if method := exp.GetMethod("call"); method != nil {
 		return method(args)

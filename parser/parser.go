@@ -30,6 +30,8 @@ func parseStatement(l *lexer.Lexer) ast.Statement {
 	switch l.Peek().Type {
 	case lexer.LET:
 		return parseLetStatement(l)
+	case lexer.STRUCT:
+		return parseStructStatement(l)
 	default:
 		return parseExpressionStatement(l)
 	}
@@ -61,7 +63,7 @@ func parseLetStatement(l *lexer.Lexer) ast.Statement {
 
 	val := parseExpression(l, 0)
 
-	return ast.LetStatment{
+	return ast.LetStatement{
 		Token: literal,
 		Mut:   mut,
 		Name: ast.Identifier{
@@ -70,6 +72,53 @@ func parseLetStatement(l *lexer.Lexer) ast.Statement {
 		},
 		Value: val,
 	}
+}
+
+func parseStructStatement(l *lexer.Lexer) ast.Statement {
+	literal := l.Next()
+
+	if l.Peek().Type != lexer.IDENT {
+		// error
+	}
+
+	name := l.Next()
+
+	if l.Peek().Type != lexer.OCB {
+		// error
+	}
+	l.Next()
+	props := parseStructProps(l)
+	if l.Peek().Type != lexer.CCB {
+		// error
+	}
+
+	l.Next()
+
+	return ast.StructStatement{
+		Token: literal,
+		Name:  ast.Identifier{name, name.Value},
+		Props: props,
+	}
+
+}
+
+func parseStructProps(l *lexer.Lexer) []ast.Identifier {
+	var idents []ast.Identifier
+	if l.Peek().Type != lexer.IDENT {
+		// error
+	}
+	for l.Peek().Type == lexer.IDENT {
+		ident := l.Next()
+		idents = append(idents, ast.Identifier{Token: ident, Value: ident.Value})
+		if l.Peek().Type == lexer.COMMA {
+			l.Next()
+			if l.Peek().Type != lexer.IDENT {
+				// error
+			}
+		}
+	}
+
+	return idents
 }
 
 func parseExpression(l *lexer.Lexer, curOperLevel int) ast.Expression {
@@ -336,15 +385,13 @@ func parseFunExpression(l *lexer.Lexer) ast.Expression {
 	funExp := ast.FunExpression{
 		Token: l.Next(),
 	}
-
-	if l.EOF() || l.Peek().Type != lexer.IDENT {
-		// error
-	}
-
-	identToken := l.Next()
-	identifier := ast.Identifier{
-		Token: identToken,
-		Value: identToken.Value,
+	var identifier ast.Identifier
+	if l.Peek().Type == lexer.IDENT {
+		identToken := l.Next()
+		identifier = ast.Identifier{
+			Token: identToken,
+			Value: identToken.Value,
+		}
 	}
 
 	funExp.Name = identifier

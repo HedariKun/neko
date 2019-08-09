@@ -1,34 +1,8 @@
 package neko
 
 type StringObject struct {
-	Value   string
-	Mut     bool
-	Fields  map[string]Object
-	Methods map[string]Method
-}
-
-func (so *StringObject) IsMutable() bool {
-	return so.Mut
-}
-
-func (so *StringObject) SetMutable(value bool) {
-	so.Mut = value
-}
-
-func (so *StringObject) SetField(name string, val Object) {
-	so.Fields[name] = val
-}
-
-func (so *StringObject) GetField(name string) Object {
-	return so.Fields[name]
-}
-
-func (so *StringObject) CallMethod(name string, args []Object) Object {
-	return so.Methods[name](args)
-}
-
-func (so *StringObject) GetMethod(name string) Method {
-	return so.Methods[name]
+	EmptyObject
+	Value string
 }
 
 func NewString(value string) Object {

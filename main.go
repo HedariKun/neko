@@ -16,9 +16,13 @@ func main() {
 		return nil
 	})
 	eva.StartEvaluate(`
-		let y = 5
-		y = 10
-		print(y)
+		struct point {
+			x,
+			y
+		}
+		let p1 = point.new(200, 300)
+		let p2 = point.new(p1.x + 400, 0)
+		print(p2.x + p1.y)
 	`)
 	//val, _ := eva.Global.GetVariable("number").(builtin.NumberObject)
 	//fmt.Println(val.Value)

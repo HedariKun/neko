@@ -148,6 +148,8 @@ func lexerizeKeyword(tokenizer *Lexer) Token {
 		t = BOOL
 	case MUT:
 		t = MUT
+	case STRUCT:
+		t = STRUCT
 	}
 	return NewToken(t, val)
 }

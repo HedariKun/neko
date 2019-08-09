@@ -44,10 +44,11 @@ const (
 	FALSE  = "false"
 	TRUE   = "true"
 
-	IDENT = "ident"
-	LET   = "let"
-	FUN   = "fun"
-	IF    = "if"
-	ELSE  = "else"
-	MUT   = "mut"
+	IDENT  = "ident"
+	LET    = "let"
+	FUN    = "fun"
+	IF     = "if"
+	ELSE   = "else"
+	MUT    = "mut"
+	STRUCT = "struct"
 )

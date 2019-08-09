@@ -1,34 +1,8 @@
 package neko
 
 type FunObject struct {
-	body    Method
-	Mut     bool
-	Fields  map[string]Object
-	Methods map[string]Method
-}
-
-func (fo *FunObject) IsMutable() bool {
-	return fo.Mut
-}
-
-func (fo *FunObject) SetMutable(value bool) {
-	fo.Mut = value
-}
-
-func (fo *FunObject) SetField(name string, val Object) {
-	fo.Fields[name] = val
-}
-
-func (fo *FunObject) GetField(name string) Object {
-	return fo.Fields[name]
-}
-
-func (fo *FunObject) CallMethod(name string, args []Object) Object {
-	return fo.Methods[name](args)
-}
-
-func (fo *FunObject) GetMethod(name string) Method {
-	return fo.Methods[name]
+	EmptyObject
+	body Method
 }
 
 func NewFun(body Method) Object {
